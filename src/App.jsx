@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import ROSLIB from 'roslib';
+
 import Rosconnection from './components/RosConnection';
 import JointMotor from './components/JointMotor';
 
@@ -10,14 +12,14 @@ function App() {
 
   return (
     <>
-      <Rosconnection rosUrl="ws://192.168.8.51:9090" rosDomainId="1" setRos={setRos} />
-      <div className="outContainer">
+      <Rosconnection rosUrl="ws://192.168.7.148:9090" rosDomainId="1" setRos={setRos} />
+      {/* <div className="outContainer">
         <h3>ROS Connection:</h3>
         <div className='borderContainer'>
-          <h4>ROS bridge IP: <input type="text" value="192.168.8.148" onChange={() => { }} /> </h4>
+          <h4>ROS bridge IP: <input type="text" value="192.168.7.148" onChange={() => { }} /> </h4>
           <h4>Connection: <span id="status">N/A </span></h4>
         </div>
-      </div>
+      </div> */}
 
       {
         ros &&
@@ -27,6 +29,12 @@ function App() {
             namespace={"elevation_joint_motor_1"}
             name={"Motor 1"}
             canId={0x60}
+          />
+          <JointMotor
+            ros={ros}
+            namespace={"elevation_joint_motor_2"}
+            name={"Motor 2"}
+            canId={0x61}
           />
         </>
       }
