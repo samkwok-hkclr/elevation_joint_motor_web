@@ -36,18 +36,18 @@ function App() {
             name={"Motor 2"}
             canId={0x61}
           />
-          {/* <JointMotor
+          <JointMotor
             ros={ros}
             namespace={"elevation_joint_motor_3"}
             name={"Motor 3"}
             canId={0x62}
-          /> */}
-          {/* <JointMotor
+          />
+          <JointMotor
             ros={ros}
             namespace={"elevation_joint_motor_4"}
             name={"Motor 4"}
             canId={0x63}
-          /> */}
+          />
         </>
       }
     </>
