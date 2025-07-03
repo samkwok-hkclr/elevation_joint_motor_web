@@ -15,6 +15,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
     targetVelocity: 0.0,
     position: 0,
     targetPosition: 0,
+    positionOffset: 0,
     errorStatus: 0,
     busVoltage: 0.0,
     motorTemp: 0.0,
@@ -40,6 +41,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
   const [haltPub, setHaltPub] = useState(null);
   const [clearPub, setClearPub] = useState(null);
   const [rotDegPub, setRotDegPub] = useState(null);
+  const [rotInitPub, setRotInitPub] = useState(null);
 
   useEffect(() => {
     if (!ros) {
@@ -71,6 +73,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
         targetVelocity: msg.target_velocity,
         position: msg.position,
         targetPosition: msg.target_position,
+        positionOffset: msg.position_offset,
         errorStatus: msg.error_status,
         busVoltage: msg.bus_voltage,
         motorTemp: msg.motor_temp,
@@ -157,6 +160,25 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
     };
   }, [ros, namespace]);
 
+  useEffect(() => {
+    if (!ros) {
+      return;
+    }
+
+    const topic = new ROSLIB.Topic({
+      ros: ros,
+      name: '/' + namespace + '/rotate_to_init',
+      messageType: 'std_msgs/msg/Empty',
+    });
+
+    setRotInitPub(topic);
+
+    return () => {
+      topic.unadvertise();
+      setRotDegPub(null);
+    };
+  }, [ros, namespace]);
+
   const sendHalt = () => {
     if (haltPub) {
       console.log('Publishing halt message');
@@ -189,6 +211,18 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
     }
   };
 
+  const sendRotInit = () => {
+    if (rotInitPub) {
+      console.log('Publishing rotate to init message');
+      const msg = new ROSLIB.Message({
+      });
+      rotInitPub.publish(msg);
+    } else {
+      console.warn('Rotate degree publisher not initialized');
+    }
+  };
+
+
   return (
     <div className='outContainer'>
       <h3>{name}:</h3>
@@ -198,7 +232,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
             <tr>
               <td>
                 <div className="borderContainer">
-                  <h5>Current Degree: {status.currentDegree.toFixed(2)} deg</h5>
+                  <h5>Current Degree: {status.currentDegree.toFixed(4)} deg</h5>
                   <h5>Mode: {status.mode}</h5>
                   <h5>Current: {status.current} mA</h5>
                   <h5>Target Current: {status.targetCurrent} mA</h5>
@@ -206,6 +240,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
                   <h5>Target Velocity: {status.targetVelocity.toFixed(2)} deg/s</h5>
                   <h5>Position: {`0x${Math.floor(status.position).toString(16).toUpperCase()}`}</h5>
                   <h5>Target Position: {`0x${Math.floor(status.minBackwardPosition).toString(16).toUpperCase()}`}</h5>
+                  <h5>Position Offset: {`0x${Math.floor(status.positionOffset).toString(16).toUpperCase()}`}</h5>
                   <h5>Error Status: {status.errorStatus}</h5>
                   <h5>Bus Voltage: {status.busVoltage} V</h5>
                   <h5>Motor Temperature: {status.motorTemp} C</h5>
@@ -234,6 +269,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
               <td style={{ display: "flex" }}>
                 <div className="btn" onClick={() => sendHalt()}>Halt</div>
                 <div className="btn" onClick={() => sendClear()}>Clear</div>
+                <div className="btn" onClick={() => sendRotInit()}>Home</div>
               </td>
             </tr>
             <tr>
@@ -244,6 +280,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
                 <div className="btn" onClick={() => sendRotDeg(10.0)}>+10</div>
                 <div className="btn" onClick={() => sendRotDeg(20.0)}>+20</div>
                 <div className="btn" onClick={() => sendRotDeg(45.0)}>+45</div>
+                {/* <div className="btn" onClick={() => sendRotDeg(135.0)}>+135</div> */}
               </td>
             </tr>
             <tr>
@@ -254,6 +291,7 @@ const  JointMotor = ({ ros, namespace, name, canId}) => {
                 <div className="btn" onClick={() => sendRotDeg(-10.0)}>-10</div>
                 <div className="btn" onClick={() => sendRotDeg(-20.0)}>-20</div>
                 <div className="btn" onClick={() => sendRotDeg(-45.0)}>-45</div>
+                {/* <div className="btn" onClick={() => sendRotDeg(-135.0)}>-135</div> */}
               </td>
             </tr>
           </tbody>
